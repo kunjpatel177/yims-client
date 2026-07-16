@@ -1,0 +1,174 @@
+:root {
+  --sidebar-width: 260px;
+  --navbar-height: 60px;
+  --primary-color: #2563eb;
+  --primary-dark: #1d4ed8;
+  --sidebar-bg: #1e293b;
+  --sidebar-hover: #334155;
+  --body-bg: #f1f5f9;
+  --card-bg: #ffffff;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #3b82f6;
+}
+
+[data-theme='dark'] {
+  --body-bg: #0f172a;
+  --card-bg: #1e293b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border-color: #334155;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--body-bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.table th {
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.table td {
+  vertical-align: middle;
+  font-size: 0.9rem;
+}
+
+.badge-status {
+  padding: 0.35em 0.75em;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-available, .badge-active, .badge-completed {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.badge-low-stock, .badge-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.badge-out-of-stock, .badge-cancelled, .badge-discontinued {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.badge-reorder-required {
+  background-color: #fce7f3;
+  color: #9d174d;
+}
+
+.badge-inactive {
+  background-color: #e2e8f0;
+  color: #475569;
+}
+
+[data-theme='dark'] .badge-available,
+[data-theme='dark'] .badge-active,
+[data-theme='dark'] .badge-completed {
+  background-color: #064e3b;
+  color: #6ee7b7;
+}
+
+[data-theme='dark'] .badge-low-stock,
+[data-theme='dark'] .badge-pending {
+  background-color: #78350f;
+  color: #fcd34d;
+}
+
+[data-theme='dark'] .badge-out-of-stock,
+[data-theme='dark'] .badge-cancelled {
+  background-color: #7f1d1d;
+  color: #fca5a5;
+}
+
+[data-theme='dark'] .table {
+  --bs-table-bg: var(--card-bg);
+  --bs-table-color: var(--text-primary);
+  --bs-table-border-color: var(--border-color);
+}
+
+[data-theme='dark'] .form-control,
+[data-theme='dark'] .form-select {
+  background-color: #0f172a;
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme='dark'] .modal-content {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+}
+
+[data-theme='dark'] .btn-close {
+  filter: invert(1);
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.page-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+  background-color: transparent;
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 600;
+  padding: 1rem 1.25rem;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb {
+  background: #475569;
+}

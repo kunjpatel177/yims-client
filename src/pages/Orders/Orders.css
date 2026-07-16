@@ -1,0 +1,45 @@
+.order-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.order-type-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.order-type-badge.purchase {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.order-type-badge.sale {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.modal-dialog-custom.modal-lg {
+  max-width: 750px;
+}
+
+.order-items-section {
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+}
+
+.order-item-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  align-items: center;
+}
+
+@media (max-width: 576px) {
+  .order-item-row {
+    grid-template-columns: 1fr;
+  }
+}

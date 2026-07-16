@@ -1,0 +1,3 @@
+.bom-page .text-danger { color: var(--danger) !important; }
+.bom-page .text-success { color: var(--success) !important; }
+.bom-page .text-primary { color: var(--primary-color) !important; }
