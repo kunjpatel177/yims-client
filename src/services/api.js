@@ -1,6 +1,8 @@
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
+const TOKEN_KEY = 'yims_token';
+const ADMIN_KEY = 'yims_admin';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -8,7 +10,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('yims_token') || sessionStorage.getItem('yims_token');
+  const token = localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -19,11 +21,13 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('yims_token');
-      localStorage.removeItem('yims_admin');
-      sessionStorage.removeItem('yims_token');
-      sessionStorage.removeItem('yims_admin');
-      if (!window.location.pathname.includes('/login')) {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(ADMIN_KEY);
+      sessionStorage.removeItem(TOKEN_KEY);
+      sessionStorage.removeItem(ADMIN_KEY);
+      const isLoginPage = window.location.pathname.includes('/login');
+      const isAuthCheck = error.config?.url?.includes('/auth/me');
+      if (!isLoginPage && !isAuthCheck) {
         window.location.href = '/login';
       }
     }

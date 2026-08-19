@@ -6,28 +6,3 @@
   font-weight: 600;
   white-space: nowrap;
 }
-
-.badge-available, .badge-active, .badge-completed {
-  background-color: #d1fae5;
-  color: #065f46;
-}
-
-.badge-low-stock, .badge-pending {
-  background-color: #fef3c7;
-  color: #92400e;
-}
-
-.badge-out-of-stock, .badge-cancelled, .badge-discontinued {
-  background-color: #fee2e2;
-  color: #991b1b;
-}
-
-.badge-reorder-required {
-  background-color: #fce7f3;
-  color: #9d174d;
-}
-
-.badge-inactive {
-  background-color: #e2e8f0;
-  color: #475569;
-}

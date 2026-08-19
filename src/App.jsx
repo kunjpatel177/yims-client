@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { AuthProvider } from './context/AuthContext';
-import { ThemeProvider } from './context/ThemeContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { WarehouseProvider } from './context/WarehouseContext';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import Layout from './components/Layout/Layout';
@@ -16,39 +16,49 @@ import Settings from './pages/Settings/Settings';
 import WarehouseInventory from './pages/WarehouseInventory/WarehouseInventory';
 import WarehouseTransfers from './pages/WarehouseTransfers/WarehouseTransfers';
 
+function AppRoutes() {
+  const { theme } = useTheme();
+
+  return (
+    <>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route element={<ProtectedRoute />}>
+          <Route element={<Layout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/raw-materials" element={<RawMaterials />} />
+            <Route path="/bom" element={<BOM />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/warehouse-inventory" element={<WarehouseInventory />} />
+            <Route path="/warehouse-transfers" element={<WarehouseTransfers />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/settings" element={<Settings />} />
+          </Route>
+        </Route>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        theme={theme === 'dark' ? 'dark' : 'colored'}
+      />
+    </>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
           <WarehouseProvider>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route element={<ProtectedRoute />}>
-              <Route element={<Layout />}>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/products" element={<Products />} />
-                <Route path="/raw-materials" element={<RawMaterials />} />
-                <Route path="/bom" element={<BOM />} />
-                <Route path="/orders" element={<Orders />} />
-                <Route path="/warehouse-inventory" element={<WarehouseInventory />} />
-                <Route path="/warehouse-transfers" element={<WarehouseTransfers />} />
-                <Route path="/reports" element={<Reports />} />
-                <Route path="/settings" element={<Settings />} />
-              </Route>
-            </Route>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-          <ToastContainer
-            position="top-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop
-            closeOnClick
-            pauseOnHover
-            theme="colored"
-          />
+            <AppRoutes />
           </WarehouseProvider>
         </AuthProvider>
       </ThemeProvider>

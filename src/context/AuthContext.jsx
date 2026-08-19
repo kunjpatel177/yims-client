@@ -3,47 +3,85 @@ import { authAPI } from '../services/apiServices';
 
 const AuthContext = createContext(null);
 
+const TOKEN_KEY = 'yims_token';
+const ADMIN_KEY = 'yims_admin';
+
+const getToken = () => localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
+
+const getStoredAdmin = () => {
+  const stored = localStorage.getItem(ADMIN_KEY) || sessionStorage.getItem(ADMIN_KEY);
+  if (!stored) return null;
+  try {
+    return JSON.parse(stored);
+  } catch {
+    return null;
+  }
+};
+
+const persistAuth = (token, adminData) => {
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem(ADMIN_KEY, JSON.stringify(adminData));
+  sessionStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(ADMIN_KEY);
+};
+
+const clearAuth = () => {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(ADMIN_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(ADMIN_KEY);
+};
+
 export function AuthProvider({ children }) {
-  const [admin, setAdmin] = useState(null);
+  const [admin, setAdmin] = useState(() => getStoredAdmin());
   const [loading, setLoading] = useState(true);
 
-  const getStoredAdmin = () => {
-    const stored = localStorage.getItem('yims_admin') || sessionStorage.getItem('yims_admin');
-    return stored ? JSON.parse(stored) : null;
-  };
-
   const checkAuth = useCallback(async () => {
-    const token = localStorage.getItem('yims_token') || sessionStorage.getItem('yims_token');
+    const token = getToken();
     if (!token) {
+      setAdmin(null);
       setLoading(false);
       return;
     }
+
+    const stored = getStoredAdmin();
+    if (stored) setAdmin(stored);
+
     try {
       const { data } = await authAPI.getMe();
       setAdmin(data.data);
-    } catch {
-      localStorage.removeItem('yims_token');
-      localStorage.removeItem('yims_admin');
-      sessionStorage.removeItem('yims_token');
-      sessionStorage.removeItem('yims_admin');
-      setAdmin(null);
+      localStorage.setItem(ADMIN_KEY, JSON.stringify(data.data));
+    } catch (err) {
+      if (err.response?.status === 401) {
+        clearAuth();
+        setAdmin(null);
+      } else if (stored) {
+        setAdmin(stored);
+      }
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    const stored = getStoredAdmin();
-    if (stored) setAdmin(stored);
+    const sessionToken = sessionStorage.getItem(TOKEN_KEY);
+    const sessionAdmin = sessionStorage.getItem(ADMIN_KEY);
+    if (sessionToken && sessionAdmin) {
+      localStorage.setItem(TOKEN_KEY, sessionToken);
+      localStorage.setItem(ADMIN_KEY, sessionAdmin);
+      sessionStorage.removeItem(TOKEN_KEY);
+      sessionStorage.removeItem(ADMIN_KEY);
+    }
     checkAuth();
   }, [checkAuth]);
 
   const login = async (credentials) => {
-    const { data } = await authAPI.login(credentials);
+    const { data } = await authAPI.login({
+      ...credentials,
+      rememberMe: credentials.rememberMe !== false,
+    });
     const { token, admin: adminData } = data.data;
-    const storage = credentials.rememberMe ? localStorage : sessionStorage;
-    storage.setItem('yims_token', token);
-    storage.setItem('yims_admin', JSON.stringify(adminData));
+    persistAuth(token, adminData);
     setAdmin(adminData);
     return data;
   };
@@ -54,15 +92,14 @@ export function AuthProvider({ children }) {
     } catch {
       // ignore
     }
-    localStorage.removeItem('yims_token');
-    localStorage.removeItem('yims_admin');
-    sessionStorage.removeItem('yims_token');
-    sessionStorage.removeItem('yims_admin');
+    clearAuth();
     setAdmin(null);
   };
 
+  const isAuthenticated = Boolean(admin) || Boolean(getToken());
+
   return (
-    <AuthContext.Provider value={{ admin, loading, login, logout, isAuthenticated: !!admin }}>
+    <AuthContext.Provider value={{ admin, loading, login, logout, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );

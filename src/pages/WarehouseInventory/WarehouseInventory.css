@@ -15,14 +15,14 @@
 }
 
 .tab-btn:hover {
-  border-color: var(--primary);
-  color: var(--primary);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
 }
 
 .tab-btn.active {
-  background: var(--primary);
-  /* color: #fff; */
-  border-color: var(--primary);
+  background: var(--primary-color);
+  color: #fff;
+  border-color: var(--primary-color);
 }
 
 .warehouse-select {

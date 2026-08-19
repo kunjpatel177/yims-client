@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import { getErrorMessage } from '../../utils/helpers';
@@ -7,10 +7,28 @@ import LoadingSpinner from '../../components/LoadingSpinner/LoadingSpinner';
 import './Login.css';
 
 function Login() {
-  const [form, setForm] = useState({ username: '', password: '', rememberMe: false });
+  const [form, setForm] = useState({ username: '', password: '', rememberMe: true });
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, isAuthenticated, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [authLoading, isAuthenticated, navigate]);
+
+  if (authLoading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,7 +36,7 @@ function Login() {
     try {
       await login(form);
       toast.success('Welcome to YIMS!');
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -52,6 +70,7 @@ function Login() {
                 value={form.username}
                 onChange={(e) => setForm({ ...form, username: e.target.value })}
                 required
+                autoComplete="username"
               />
             </div>
           </div>
@@ -67,6 +86,7 @@ function Login() {
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 required
+                autoComplete="current-password"
               />
             </div>
           </div>
@@ -78,7 +98,7 @@ function Login() {
                 checked={form.rememberMe}
                 onChange={(e) => setForm({ ...form, rememberMe: e.target.checked })}
               />
-              Remember Me
+              Keep me signed in
             </label>
           </div>
 

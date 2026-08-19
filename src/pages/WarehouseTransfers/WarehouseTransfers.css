@@ -5,9 +5,15 @@
   font-size: 0.8rem;
   font-weight: 500;
   background: var(--bg-secondary);
-  color: var(--text-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .transfer-details p {
   margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.transfer-details strong {
+  color: var(--text-secondary);
 }
