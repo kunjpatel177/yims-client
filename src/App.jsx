@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { WarehouseProvider } from './context/WarehouseContext';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import Layout from './components/Layout/Layout';
 import Login from './pages/Login/Login';
@@ -20,6 +21,7 @@ function App() {
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
+          <WarehouseProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route element={<ProtectedRoute />}>
@@ -47,6 +49,7 @@ function App() {
             pauseOnHover
             theme="colored"
           />
+          </WarehouseProvider>
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { dashboardAPI, warehouseAPI } from '../../services/apiServices';
+import { dashboardAPI } from '../../services/apiServices';
+import { useWarehouses } from '../../context/WarehouseContext';
 import { getErrorMessage, formatDate } from '../../utils/helpers';
 import StatCard from '../../components/StatCard/StatCard';
 import StatusBadge from '../../components/StatusBadge/StatusBadge';
@@ -28,14 +29,10 @@ function BarChart({ data, labelKey, valueKey, color = 'var(--primary)' }) {
 }
 
 function Dashboard() {
+  const { warehouses } = useWarehouses();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [warehouseFilter, setWarehouseFilter] = useState('');
-  const [warehouses, setWarehouses] = useState([]);
-
-  useEffect(() => {
-    warehouseAPI.getActive().then(({ data }) => setWarehouses(data.data)).catch(() => {});
-  }, []);
 
   useEffect(() => {
     fetchDashboard();
@@ -84,6 +81,7 @@ function Dashboard() {
           style={{ maxWidth: 220 }}
           value={warehouseFilter}
           onChange={(e) => setWarehouseFilter(e.target.value)}
+          aria-label="Filter by warehouse"
         >
           <option value="">All Warehouses</option>
           {warehouses.map((w) => (

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { warehouseTransferAPI, warehouseAPI, productAPI, rawMaterialAPI } from '../../services/apiServices';
+import { warehouseTransferAPI, productAPI, rawMaterialAPI } from '../../services/apiServices';
+import { useWarehouses } from '../../context/WarehouseContext';
 import { getErrorMessage, formatDate } from '../../utils/helpers';
 import StatusBadge from '../../components/StatusBadge/StatusBadge';
 import Pagination from '../../components/Pagination/Pagination';
@@ -22,8 +23,8 @@ const emptyForm = {
 };
 
 function WarehouseTransfers() {
+  const { warehouses } = useWarehouses();
   const [transfers, setTransfers] = useState([]);
-  const [warehouses, setWarehouses] = useState([]);
   const [products, setProducts] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1 });
@@ -62,18 +63,17 @@ function WarehouseTransfers() {
     }
   }, [search, statusFilter, itemTypeFilter, warehouseFilter, dateStart, dateEnd, sortBy, sortOrder]);
 
-  const fetchDropdowns = async () => {
-    const [whRes, prodRes, matRes] = await Promise.all([
-      warehouseAPI.getActive(),
+  useEffect(() => {
+    Promise.all([
       productAPI.getAll({ limit: 100 }),
       rawMaterialAPI.getAll({ limit: 100 }),
-    ]);
-    setWarehouses(whRes.data.data);
-    setProducts(prodRes.data.data);
-    setMaterials(matRes.data.data);
-  };
+    ]).then(([prodRes, matRes]) => {
+      setProducts(prodRes.data.data);
+      setMaterials(matRes.data.data);
+    }).catch((err) => toast.error(getErrorMessage(err)));
+  }, []);
 
-  useEffect(() => { fetchTransfers(); fetchDropdowns(); }, [fetchTransfers]);
+  useEffect(() => { fetchTransfers(); }, [fetchTransfers]);
 
   const openCreate = () => {
     setForm(emptyForm);
@@ -162,25 +162,43 @@ function WarehouseTransfers() {
 
       <div className="card">
         <div className="card-body">
-          <div className="table-toolbar d-flex gap-2 flex-wrap">
-            <input type="text" className="form-control search-input" placeholder="Search transfers..." value={search} onChange={(e) => setSearch(e.target.value)} />
-            <select className="form-select filter-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-              <option value="">All Status</option>
-              <option value="Pending">Pending</option>
-              <option value="Completed">Completed</option>
-              <option value="Cancelled">Cancelled</option>
-            </select>
-            <select className="form-select filter-select" value={itemTypeFilter} onChange={(e) => setItemTypeFilter(e.target.value)}>
-              <option value="">All Types</option>
-              <option value="product">Product</option>
-              <option value="rawMaterial">Raw Material</option>
-            </select>
-            <select className="form-select filter-select" value={warehouseFilter} onChange={(e) => setWarehouseFilter(e.target.value)}>
-              <option value="">All Warehouses</option>
-              {warehouses.map((w) => <option key={w._id} value={w._id}>{w.name}</option>)}
-            </select>
-            <input type="date" className="form-control filter-select" value={dateStart} onChange={(e) => setDateStart(e.target.value)} title="From date" />
-            <input type="date" className="form-control filter-select" value={dateEnd} onChange={(e) => setDateEnd(e.target.value)} title="To date" />
+          <div className="table-toolbar row g-2">
+            <div className="col-md-3">
+              <label className="form-label">Search</label>
+              <input type="text" className="form-control search-input" placeholder="Search transfers..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            </div>
+            <div className="col-md-2">
+              <label className="form-label">Status</label>
+              <select className="form-select filter-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                <option value="">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+            <div className="col-md-2">
+              <label className="form-label">Item Type</label>
+              <select className="form-select filter-select" value={itemTypeFilter} onChange={(e) => setItemTypeFilter(e.target.value)}>
+                <option value="">All Types</option>
+                <option value="product">Product</option>
+                <option value="rawMaterial">Raw Material</option>
+              </select>
+            </div>
+            <div className="col-md-2">
+              <label className="form-label">Warehouse</label>
+              <select className="form-select filter-select" value={warehouseFilter} onChange={(e) => setWarehouseFilter(e.target.value)}>
+                <option value="">All Warehouses</option>
+                {warehouses.map((w) => <option key={w._id} value={w._id}>{w.name}</option>)}
+              </select>
+            </div>
+            <div className="col-md-1">
+              <label className="form-label">From</label>
+              <input type="date" className="form-control" value={dateStart} onChange={(e) => setDateStart(e.target.value)} />
+            </div>
+            <div className="col-md-1">
+              <label className="form-label">To</label>
+              <input type="date" className="form-control" value={dateEnd} onChange={(e) => setDateEnd(e.target.value)} />
+            </div>
           </div>
 
           {loading ? (

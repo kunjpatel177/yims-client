@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { orderAPI, productAPI, rawMaterialAPI, warehouseAPI } from '../../services/apiServices';
+import { orderAPI, productAPI, rawMaterialAPI } from '../../services/apiServices';
+import { useWarehouses } from '../../context/WarehouseContext';
 import { getErrorMessage, formatDate } from '../../utils/helpers';
 import StatusBadge from '../../components/StatusBadge/StatusBadge';
 import Pagination from '../../components/Pagination/Pagination';
@@ -10,10 +11,10 @@ import '../Products/Products.css';
 import './Orders.css';
 
 function Orders() {
+  const { warehouses } = useWarehouses();
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [materials, setMaterials] = useState([]);
-  const [warehouses, setWarehouses] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1 });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -45,18 +46,17 @@ function Orders() {
     }
   }, [search, typeFilter, statusFilter]);
 
-  const fetchDropdowns = async () => {
-    const [prodRes, matRes, whRes] = await Promise.all([
+  useEffect(() => {
+    Promise.all([
       productAPI.getAll({ limit: 100 }),
       rawMaterialAPI.getAll({ limit: 100 }),
-      warehouseAPI.getActive(),
-    ]);
-    setProducts(prodRes.data.data);
-    setMaterials(matRes.data.data);
-    setWarehouses(whRes.data.data);
-  };
+    ]).then(([prodRes, matRes]) => {
+      setProducts(prodRes.data.data);
+      setMaterials(matRes.data.data);
+    }).catch((err) => toast.error(getErrorMessage(err)));
+  }, []);
 
-  useEffect(() => { fetchOrders(); fetchDropdowns(); }, [fetchOrders]);
+  useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
   const openCreate = (type = 'purchase') => {
     setForm({
@@ -77,8 +77,8 @@ function Orders() {
       notes: order.notes,
       warehouse: order.warehouse?._id || order.warehouse || '',
       items: order.items.map((i) => ({
-        product: i.product || '',
-        rawMaterial: i.rawMaterial || '',
+        product: i.product?._id || i.product || '',
+        rawMaterial: i.rawMaterial?._id || i.rawMaterial || '',
         quantity: i.quantity,
         unitPrice: i.unitPrice || 0,
       })),
@@ -148,6 +148,8 @@ function Orders() {
     }
   };
 
+  const itemLabel = form.orderType === 'purchase' ? 'Raw Material' : 'Product';
+
   return (
     <div className="orders-page">
       <div className="page-header">
@@ -167,19 +169,28 @@ function Orders() {
 
       <div className="card">
         <div className="card-body">
-          <div className="table-toolbar d-flex gap-2 flex-wrap">
-            <input type="text" className="form-control search-input" placeholder="Search orders..." value={search} onChange={(e) => setSearch(e.target.value)} />
-            <select className="form-select filter-select" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
-              <option value="">All Types</option>
-              <option value="purchase">Purchase</option>
-              <option value="sale">Sale</option>
-            </select>
-            <select className="form-select filter-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-              <option value="">All Status</option>
-              <option value="Pending">Pending</option>
-              <option value="Completed">Completed</option>
-              <option value="Cancelled">Cancelled</option>
-            </select>
+          <div className="table-toolbar row g-2 mb-3">
+            <div className="col-md-4">
+              <label className="form-label">Search</label>
+              <input type="text" className="form-control search-input" placeholder="Search orders..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            </div>
+            <div className="col-md-3">
+              <label className="form-label">Order Type</label>
+              <select className="form-select filter-select" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+                <option value="">All Types</option>
+                <option value="purchase">Purchase</option>
+                <option value="sale">Sale</option>
+              </select>
+            </div>
+            <div className="col-md-3">
+              <label className="form-label">Status</label>
+              <select className="form-select filter-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                <option value="">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
           </div>
 
           {loading ? (
@@ -245,7 +256,7 @@ function Orders() {
             <div className="modal-body-custom">
               <div className="row g-3 mb-3">
                 <div className="col-md-4">
-                  <label className="form-label">Order Date</label>
+                  <label className="form-label">Order Date *</label>
                   <input type="date" className="form-control" value={form.orderDate} onChange={(e) => setForm({ ...form, orderDate: e.target.value })} />
                 </div>
                 <div className="col-md-4">
@@ -253,7 +264,7 @@ function Orders() {
                   <input type="date" className="form-control" value={form.expectedDate} onChange={(e) => setForm({ ...form, expectedDate: e.target.value })} />
                 </div>
                 <div className="col-md-4">
-                  <label className="form-label">Status</label>
+                  <label className="form-label">Status *</label>
                   <select className="form-select" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
                     <option value="Pending">Pending</option>
                     <option value="Completed">Completed</option>
@@ -276,23 +287,58 @@ function Orders() {
               </div>
 
               <div className="order-items-section">
-                <div className="d-flex justify-content-between align-items-center mb-2">
+                <div className="d-flex justify-content-between align-items-center mb-3">
                   <h6 className="mb-0">Order Items</h6>
-                  <button className="btn btn-sm btn-outline-primary" onClick={addItem}><i className="fas fa-plus" /> Add Item</button>
+                  <button type="button" className="btn btn-sm btn-outline-primary" onClick={addItem}>
+                    <i className="fas fa-plus" /> Add Item
+                  </button>
                 </div>
+
                 {form.items.map((item, idx) => (
-                  <div key={idx} className="order-item-row">
-                    <select className="form-select" value={form.orderType === 'purchase' ? item.rawMaterial : item.product} onChange={(e) => updateItem(idx, form.orderType === 'purchase' ? 'rawMaterial' : 'product', e.target.value)}>
-                      <option value="">Select {form.orderType === 'purchase' ? 'Material' : 'Product'}</option>
-                      {(form.orderType === 'purchase' ? materials : products).map((x) => (
-                        <option key={x._id} value={x._id}>{x.name} ({x.sku})</option>
-                      ))}
-                    </select>
-                    <input type="number" min="1" className="form-control" placeholder="Qty" value={item.quantity} onChange={(e) => updateItem(idx, 'quantity', e.target.value)} />
-                    <input type="number" min="0" className="form-control" placeholder="Price" value={item.unitPrice} onChange={(e) => updateItem(idx, 'unitPrice', e.target.value)} />
-                    {form.items.length > 1 && (
-                      <button className="btn btn-sm btn-outline-danger" onClick={() => removeItem(idx)}><i className="fas fa-times" /></button>
-                    )}
+                  <div key={idx} className="order-item-block">
+                    <div className="order-item-row">
+                      <div className="order-item-field">
+                        <label className="form-label">{itemLabel} *</label>
+                        <select
+                          className="form-select"
+                          value={form.orderType === 'purchase' ? item.rawMaterial : item.product}
+                          onChange={(e) => updateItem(idx, form.orderType === 'purchase' ? 'rawMaterial' : 'product', e.target.value)}
+                        >
+                          <option value="">Select {itemLabel.toLowerCase()}</option>
+                          {(form.orderType === 'purchase' ? materials : products).map((x) => (
+                            <option key={x._id} value={x._id}>{x.name} ({x.sku})</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="order-item-field">
+                        <label className="form-label">Quantity *</label>
+                        <input
+                          type="number"
+                          min="1"
+                          className="form-control"
+                          value={item.quantity}
+                          onChange={(e) => updateItem(idx, 'quantity', e.target.value)}
+                        />
+                      </div>
+                      <div className="order-item-field">
+                        <label className="form-label">Unit Price (₹)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          className="form-control"
+                          value={item.unitPrice}
+                          onChange={(e) => updateItem(idx, 'unitPrice', e.target.value)}
+                        />
+                      </div>
+                      {form.items.length > 1 && (
+                        <div className="order-item-field order-item-remove">
+                          <label className="form-label d-none d-md-block">&nbsp;</label>
+                          <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => removeItem(idx)} title="Remove item">
+                            <i className="fas fa-times" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

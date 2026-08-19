@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { warehouseAPI } from '../../services/apiServices';
+import { useWarehouses } from '../../context/WarehouseContext';
 import { getErrorMessage } from '../../utils/helpers';
 import ExportButtons from '../../components/ExportButtons/ExportButtons';
 import Pagination from '../../components/Pagination/Pagination';
@@ -9,22 +10,27 @@ import '../Products/Products.css';
 import './WarehouseInventory.css';
 
 function WarehouseInventory() {
-  const [warehouses, setWarehouses] = useState([]);
+  const { warehouses } = useWarehouses();
   const [selectedWarehouse, setSelectedWarehouse] = useState('');
   const [activeTab, setActiveTab] = useState('product');
   const [items, setItems] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sortBy, setSortBy] = useState('updatedAt');
   const [sortOrder, setSortOrder] = useState('desc');
 
   useEffect(() => {
-    warehouseAPI.getActive().then(({ data }) => {
-      setWarehouses(data.data);
-      if (data.data.length > 0) setSelectedWarehouse(data.data[0]._id);
-    }).catch((err) => toast.error(getErrorMessage(err)));
-  }, []);
+    if (warehouses.length > 0 && !selectedWarehouse) {
+      setSelectedWarehouse(warehouses[0]._id);
+    }
+  }, [warehouses, selectedWarehouse]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const fetchInventory = useCallback(async (page = 1) => {
     if (!selectedWarehouse) return;
@@ -34,7 +40,7 @@ function WarehouseInventory() {
         itemType: activeTab,
         page,
         limit: 10,
-        search,
+        search: debouncedSearch,
         sortBy,
         sortOrder,
       });
@@ -45,7 +51,7 @@ function WarehouseInventory() {
     } finally {
       setLoading(false);
     }
-  }, [selectedWarehouse, activeTab, search, sortBy, sortOrder]);
+  }, [selectedWarehouse, activeTab, debouncedSearch, sortBy, sortOrder]);
 
   useEffect(() => { fetchInventory(); }, [fetchInventory]);
 
@@ -61,7 +67,7 @@ function WarehouseInventory() {
   const handleExport = (format) => warehouseAPI.exportInventory(selectedWarehouse, {
     itemType: activeTab,
     format,
-    search,
+    search: debouncedSearch,
   });
 
   const selectedWh = warehouses.find((w) => w._id === selectedWarehouse);
@@ -78,23 +84,29 @@ function WarehouseInventory() {
 
       <div className="card mb-3">
         <div className="card-body">
-          <div className="table-toolbar d-flex gap-2 flex-wrap align-items-center">
-            <select
-              className="form-select filter-select warehouse-select"
-              value={selectedWarehouse}
-              onChange={(e) => setSelectedWarehouse(e.target.value)}
-            >
-              {warehouses.map((w) => (
-                <option key={w._id} value={w._id}>{w.name} ({w.code})</option>
-              ))}
-            </select>
-            <input
-              type="text"
-              className="form-control search-input"
-              placeholder="Search items..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+          <div className="row g-3 align-items-end">
+            <div className="col-md-4">
+              <label className="form-label">Warehouse *</label>
+              <select
+                className="form-select warehouse-select"
+                value={selectedWarehouse}
+                onChange={(e) => setSelectedWarehouse(e.target.value)}
+              >
+                {warehouses.map((w) => (
+                  <option key={w._id} value={w._id}>{w.name} ({w.code})</option>
+                ))}
+              </select>
+            </div>
+            <div className="col-md-8">
+              <label className="form-label">Search Items</label>
+              <input
+                type="text"
+                className="form-control search-input"
+                placeholder="Search by name or SKU..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -141,7 +153,7 @@ function WarehouseInventory() {
                   {items.length === 0 ? (
                     <tr><td colSpan="6" className="text-center text-muted py-4">No inventory found</td></tr>
                   ) : items.map((item) => (
-                    <tr key={item._id}>
+                    <tr key={item._id || `${item.itemSku}-${item.itemName}`}>
                       <td><strong>{item.itemName}</strong></td>
                       <td>{item.itemSku}</td>
                       <td><strong>{item.currentStock}</strong></td>
