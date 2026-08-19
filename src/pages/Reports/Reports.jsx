@@ -14,6 +14,10 @@ const REPORT_TYPES = [
   { id: 'low-stock', label: 'Low Stock Report', icon: 'fa-exclamation-triangle' },
   { id: 'consumption', label: 'Material Consumption', icon: 'fa-recycle' },
   { id: 'manufacturing', label: 'Manufacturing Capacity', icon: 'fa-industry' },
+  { id: 'warehouse-stock', label: 'Warehouse Stock', icon: 'fa-warehouse' },
+  { id: 'warehouse-transfers', label: 'Warehouse Transfers', icon: 'fa-exchange-alt' },
+  { id: 'product-stock-warehouse', label: 'Product Stock by Warehouse', icon: 'fa-box' },
+  { id: 'raw-material-stock-warehouse', label: 'Raw Material Stock by Warehouse', icon: 'fa-cubes' },
 ];
 
 const API_MAP = {
@@ -23,6 +27,10 @@ const API_MAP = {
   'low-stock': dashboardAPI.getLowStockReport,
   consumption: dashboardAPI.getConsumptionReport,
   manufacturing: dashboardAPI.getManufacturingReport,
+  'warehouse-stock': dashboardAPI.getWarehouseStockReport,
+  'warehouse-transfers': dashboardAPI.getWarehouseTransferReport,
+  'product-stock-warehouse': dashboardAPI.getProductStockByWarehouseReport,
+  'raw-material-stock-warehouse': dashboardAPI.getRawMaterialStockByWarehouseReport,
 };
 
 function Reports() {
@@ -65,7 +73,7 @@ function Reports() {
     return API_MAP[activeReport](params);
   };
 
-  const showDateFilters = activeReport === 'purchase' || activeReport === 'sales';
+  const showDateFilters = ['purchase', 'sales', 'warehouse-transfers'].includes(activeReport);
   const showStatusFilter = showDateFilters;
 
   const renderTable = () => {
@@ -217,6 +225,128 @@ function Reports() {
                   <td>{row.salesQuantity}</td>
                   <td>{row.maxManufacturable}</td>
                   <td><StatusBadge status={row.availability} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        );
+
+      case 'warehouse-stock':
+        return (
+          <table className="table table-hover">
+            <thead>
+              <tr>
+                <th>Warehouse</th>
+                <th>Type</th>
+                <th>Item</th>
+                <th>SKU</th>
+                <th>Current</th>
+                <th>Reserved</th>
+                <th>Available</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((row, i) => (
+                <tr key={i}>
+                  <td>{row.warehouse}</td>
+                  <td><span className="report-type-badge">{row.itemType}</span></td>
+                  <td><strong>{row.itemName}</strong></td>
+                  <td><code>{row.sku}</code></td>
+                  <td>{row.currentStock}</td>
+                  <td>{row.reservedStock}</td>
+                  <td>{row.availableStock}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        );
+
+      case 'warehouse-transfers':
+        return (
+          <table className="table table-hover">
+            <thead>
+              <tr>
+                <th>Transfer #</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Item</th>
+                <th>Qty</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((row, i) => (
+                <tr key={i}>
+                  <td><strong>{row.transferNumber}</strong></td>
+                  <td>{row.date}</td>
+                  <td><span className="report-type-badge">{row.itemType}</span></td>
+                  <td>{row.itemName}</td>
+                  <td>{row.quantity}</td>
+                  <td>{row.fromWarehouse}</td>
+                  <td>{row.toWarehouse}</td>
+                  <td><StatusBadge status={row.status} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        );
+
+      case 'product-stock-warehouse':
+        return (
+          <table className="table table-hover">
+            <thead>
+              <tr>
+                <th>Warehouse</th>
+                <th>Product</th>
+                <th>SKU</th>
+                <th>Category</th>
+                <th>Current</th>
+                <th>Reserved</th>
+                <th>Available</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((row, i) => (
+                <tr key={i}>
+                  <td>{row.warehouse}</td>
+                  <td><strong>{row.product}</strong></td>
+                  <td><code>{row.sku}</code></td>
+                  <td>{row.category}</td>
+                  <td>{row.currentStock}</td>
+                  <td>{row.reservedStock}</td>
+                  <td>{row.availableStock}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        );
+
+      case 'raw-material-stock-warehouse':
+        return (
+          <table className="table table-hover">
+            <thead>
+              <tr>
+                <th>Warehouse</th>
+                <th>Material</th>
+                <th>SKU</th>
+                <th>Unit</th>
+                <th>Current</th>
+                <th>Reserved</th>
+                <th>Available</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((row, i) => (
+                <tr key={i}>
+                  <td>{row.warehouse}</td>
+                  <td><strong>{row.material}</strong></td>
+                  <td><code>{row.sku}</code></td>
+                  <td>{row.unit}</td>
+                  <td>{row.currentStock}</td>
+                  <td>{row.reservedStock}</td>
+                  <td>{row.availableStock}</td>
                 </tr>
               ))}
             </tbody>

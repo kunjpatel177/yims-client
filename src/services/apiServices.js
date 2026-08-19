@@ -49,7 +49,7 @@ export const settingsAPI = {
 };
 
 export const dashboardAPI = {
-  getStats: () => api.get('/dashboard'),
+  getStats: (params) => api.get('/dashboard', { params }),
   search: (q) => api.get('/search', { params: { q } }),
   getPurchaseReport: (params) => api.get('/reports/purchase', { params }),
   getSalesReport: (params) => api.get('/reports/sales', { params }),
@@ -57,4 +57,25 @@ export const dashboardAPI = {
   getLowStockReport: (params) => api.get('/reports/low-stock', { params }),
   getConsumptionReport: (params) => api.get('/reports/consumption', { params }),
   getManufacturingReport: (params) => api.get('/reports/manufacturing', { params }),
+  getWarehouseStockReport: (params) => api.get('/reports/warehouse-stock', { params }),
+  getWarehouseTransferReport: (params) => api.get('/reports/warehouse-transfers', { params }),
+  getProductStockByWarehouseReport: (params) => api.get('/reports/product-stock-warehouse', { params }),
+  getRawMaterialStockByWarehouseReport: (params) => api.get('/reports/raw-material-stock-warehouse', { params }),
+};
+
+export const warehouseAPI = {
+  getAll: (params) => api.get('/warehouses', { params }),
+  getActive: () => api.get('/warehouses/active'),
+  getById: (id) => api.get(`/warehouses/${id}`),
+  getInventory: (warehouseId, params) => api.get(`/warehouses/inventory/${warehouseId}`, { params }),
+  exportInventory: (warehouseId, params) => api.get(`/warehouses/inventory/${warehouseId}/export`, { params, responseType: 'blob' }),
+};
+
+export const warehouseTransferAPI = {
+  getAll: (params) => api.get('/warehouse-transfers', { params }),
+  getById: (id) => api.get(`/warehouse-transfers/${id}`),
+  create: (data) => api.post('/warehouse-transfers', data),
+  updateStatus: (id, status) => api.patch(`/warehouse-transfers/${id}/status`, { status }),
+  delete: (id) => api.delete(`/warehouse-transfers/${id}`),
+  export: (params) => api.get('/warehouse-transfers/export', { params, responseType: 'blob' }),
 };

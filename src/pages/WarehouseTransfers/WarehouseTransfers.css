@@ -1,0 +1,13 @@
+.item-type-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
+.transfer-details p {
+  margin-bottom: 0.5rem;
+}

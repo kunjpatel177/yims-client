@@ -38,3 +38,53 @@
     grid-template-columns: 1fr;
   }
 }
+
+.warehouse-stats-grid {
+  margin-bottom: 1.5rem;
+}
+
+.bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.bar-chart-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bar-chart-label {
+  min-width: 100px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+.bar-chart-bar-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  height: 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bar-chart-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+  min-width: 2px;
+}
+
+.bar-chart-value {
+  position: absolute;
+  right: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}

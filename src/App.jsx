@@ -12,6 +12,8 @@ import BOM from './pages/BOM/BOM';
 import Orders from './pages/Orders/Orders';
 import Reports from './pages/Reports/Reports';
 import Settings from './pages/Settings/Settings';
+import WarehouseInventory from './pages/WarehouseInventory/WarehouseInventory';
+import WarehouseTransfers from './pages/WarehouseTransfers/WarehouseTransfers';
 
 function App() {
   return (
@@ -27,6 +29,8 @@ function App() {
                 <Route path="/raw-materials" element={<RawMaterials />} />
                 <Route path="/bom" element={<BOM />} />
                 <Route path="/orders" element={<Orders />} />
+                <Route path="/warehouse-inventory" element={<WarehouseInventory />} />
+                <Route path="/warehouse-transfers" element={<WarehouseTransfers />} />
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/settings" element={<Settings />} />
               </Route>

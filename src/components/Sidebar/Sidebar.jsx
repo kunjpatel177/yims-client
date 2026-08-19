@@ -8,6 +8,8 @@ const menuItems = [
   { path: '/raw-materials', icon: 'fa-cubes', label: 'Raw Materials' },
   { path: '/bom', icon: 'fa-sitemap', label: 'Bill Of Materials' },
   { path: '/orders', icon: 'fa-shopping-cart', label: 'Orders' },
+  { path: '/warehouse-inventory', icon: 'fa-warehouse', label: 'Warehouse Inventory' },
+  { path: '/warehouse-transfers', icon: 'fa-exchange-alt', label: 'Warehouse Transfers' },
   { path: '/reports', icon: 'fa-chart-bar', label: 'Reports' },
   { path: '/settings', icon: 'fa-cog', label: 'Settings' },
 ];

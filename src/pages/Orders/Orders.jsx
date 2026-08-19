@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { orderAPI, productAPI, rawMaterialAPI } from '../../services/apiServices';
+import { orderAPI, productAPI, rawMaterialAPI, warehouseAPI } from '../../services/apiServices';
 import { getErrorMessage, formatDate } from '../../utils/helpers';
 import StatusBadge from '../../components/StatusBadge/StatusBadge';
 import Pagination from '../../components/Pagination/Pagination';
@@ -13,6 +13,7 @@ function Orders() {
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [materials, setMaterials] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1 });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -21,7 +22,8 @@ function Orders() {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({
     orderType: 'purchase', orderDate: new Date().toISOString().split('T')[0],
-    expectedDate: '', status: 'Pending', notes: '', items: [{ quantity: 1, unitPrice: 0 }],
+    expectedDate: '', status: 'Pending', notes: '', warehouse: '',
+    items: [{ quantity: 1, unitPrice: 0 }],
   });
   const [editId, setEditId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
@@ -44,12 +46,14 @@ function Orders() {
   }, [search, typeFilter, statusFilter]);
 
   const fetchDropdowns = async () => {
-    const [prodRes, matRes] = await Promise.all([
+    const [prodRes, matRes, whRes] = await Promise.all([
       productAPI.getAll({ limit: 100 }),
       rawMaterialAPI.getAll({ limit: 100 }),
+      warehouseAPI.getActive(),
     ]);
     setProducts(prodRes.data.data);
     setMaterials(matRes.data.data);
+    setWarehouses(whRes.data.data);
   };
 
   useEffect(() => { fetchOrders(); fetchDropdowns(); }, [fetchOrders]);
@@ -57,7 +61,7 @@ function Orders() {
   const openCreate = (type = 'purchase') => {
     setForm({
       orderType: type, orderDate: new Date().toISOString().split('T')[0],
-      expectedDate: '', status: 'Pending', notes: '',
+      expectedDate: '', status: 'Pending', notes: '', warehouse: warehouses[0]?._id || '',
       items: [{ quantity: 1, unitPrice: 0, product: '', rawMaterial: '' }],
     });
     setEditId(null);
@@ -71,6 +75,7 @@ function Orders() {
       expectedDate: order.expectedDate?.split('T')[0] || '',
       status: order.status,
       notes: order.notes,
+      warehouse: order.warehouse?._id || order.warehouse || '',
       items: order.items.map((i) => ({
         product: i.product || '',
         rawMaterial: i.rawMaterial || '',
@@ -186,6 +191,7 @@ function Orders() {
                   <tr>
                     <th>Order #</th>
                     <th>Type</th>
+                    <th>Warehouse</th>
                     <th>Date</th>
                     <th>Expected</th>
                     <th>Items</th>
@@ -196,11 +202,12 @@ function Orders() {
                 </thead>
                 <tbody>
                   {orders.length === 0 ? (
-                    <tr><td colSpan="8" className="text-center text-muted py-4">No orders found</td></tr>
+                    <tr><td colSpan="9" className="text-center text-muted py-4">No orders found</td></tr>
                   ) : orders.map((o) => (
                     <tr key={o._id}>
                       <td><strong>{o.orderNumber}</strong></td>
                       <td><span className={`order-type-badge ${o.orderType}`}>{o.orderType}</span></td>
+                      <td>{o.warehouse?.name || '—'}</td>
                       <td>{formatDate(o.orderDate)}</td>
                       <td>{formatDate(o.expectedDate)}</td>
                       <td>{o.items?.length}</td>
@@ -251,6 +258,15 @@ function Orders() {
                     <option value="Pending">Pending</option>
                     <option value="Completed">Completed</option>
                     <option value="Cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div className="col-md-4">
+                  <label className="form-label">{form.orderType === 'purchase' ? 'Destination' : 'Source'} Warehouse *</label>
+                  <select className="form-select" value={form.warehouse} onChange={(e) => setForm({ ...form, warehouse: e.target.value })} required>
+                    <option value="">Select warehouse</option>
+                    {warehouses.map((w) => (
+                      <option key={w._id} value={w._id}>{w.name} ({w.code})</option>
+                    ))}
                   </select>
                 </div>
                 <div className="col-12">

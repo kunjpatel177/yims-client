@@ -119,6 +119,7 @@ function Products() {
                     <th className="sortable" onClick={() => handleSort('sku')}>SKU</th>
                     <th>Category</th>
                     <th className="sortable" onClick={() => handleSort('salesQuantity')}>Sales Qty</th>
+                    <th>Current Stock</th>
                     <th>Availability</th>
                     <th>Max Mfg</th>
                     <th>Status</th>
@@ -135,6 +136,7 @@ function Products() {
                       <td><code>{p.sku}</code></td>
                       <td>{p.category}</td>
                       <td>{p.salesQuantity}</td>
+                      <td><strong>{p.currentStock ?? 0}</strong></td>
                       <td><StatusBadge status={p.availability} /></td>
                       <td>{p.maxManufacturable}</td>
                       <td><StatusBadge status={p.status} /></td>
